@@ -1,3 +1,6 @@
 pycryptodome
 lxml
 Pillow
+numpy
+tifffile
+imageio
