@@ -5,6 +5,9 @@ import base64
 import hmac
 import re
 import shutil
+import tifffile
+import imageio
+import numpy
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -114,15 +117,16 @@ def load_tiles(url, z=-1, outfile=None):
         for y in range(level.num_tiles_y):
             percent_complete = 100 * (y + x * level.num_tiles_y) // level.total_tiles
             print("Downloading tiles: {:3d}%".format(percent_complete), end='\r')
-            file_path = tiles_dir / ('%sx%sx%s.jpg' % (x, y, z))
+            file_path = tiles_dir / ('%sx%sx%s.tiff' % (x, y, z))
             if not file_path.exists():
                 tile_bytes = info.fetch_tile(x, y, z)
                 file_path.write_bytes(tile_bytes)
             tile_img = Image.open(file_path)
             img.paste(tile_img, (x * info.tile_width, y * info.tile_height))
     print("Downloaded all tiles. Saving...")
-    final_image_filename = outfile or (info.image_name + '.jpg')
-    img.save(final_image_filename)
+    final_image_filename = outfile or (info.image_name + '.tiff')
+    img_num = numpy.array(img)
+    tifffile.imwrite(final_image_filename, img_num, bigtiff=True)
     shutil.rmtree(tiles_dir)
     print("Saved the result as " + final_image_filename)
 
